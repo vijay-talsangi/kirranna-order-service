@@ -1,5 +1,6 @@
 package com.talsangi.kirranna.order;
 
+import com.talsangi.kirranna.order.stubs.InventoryClientStub;
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,11 +8,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.mysql.MySQLContainer;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
+import org.wiremock.spring.internal.WireMockServerCreator;
+
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableWireMock({
+		@ConfigureWireMock(name = "inventory-service", port = 0, baseUrlProperties = "inventory.url")
+})
 class OrderServiceApplicationTests {
 
 	@ServiceConnection
@@ -39,6 +49,8 @@ class OrderServiceApplicationTests {
 				    "quantity": "45"
 				}
 		""";
+
+		InventoryClientStub.stubInventoryCall("iphone-15", 45);
 
 		var responseBodyString = RestAssured.given()
 				.contentType("application/json")
